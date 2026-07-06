@@ -1,0 +1,636 @@
+<title>Magnolia Galleria — Competitive Rent Analysis</title>
+<style>
+  :root{
+    --ink:#16233D;
+    --ink-soft:#4C5A72;
+    --bg:#F1F4F9;
+    --surface:#FFFFFF;
+    --line:#DCE2EC;
+    --line-soft:#EAEEF5;
+    --navy:#1B3B77;
+    --navy-deep:#0E2547;
+    --comp:#8992A3;
+    --comp-soft:#B7BEC9;
+    --amber:#A9682B;
+    --amber-bg:#FBF1E6;
+    --serif: Iowan Old Style, Palatino Linotype, Palatino, Georgia, "Times New Roman", serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    font-size:15px;
+    line-height:1.5;
+  }
+  .page{
+    max-width:1180px;
+    margin:0 auto;
+    padding:36px 28px 64px;
+  }
+  header.report-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    gap:24px;
+    border-bottom:2px solid var(--navy);
+    padding-bottom:18px;
+    margin-bottom:28px;
+    flex-wrap:wrap;
+  }
+  header.report-head h1{
+    font-family:var(--serif);
+    font-weight:600;
+    font-size:30px;
+    margin:0 0 4px;
+    color:var(--navy-deep);
+    text-wrap:balance;
+  }
+  header.report-head .addr{
+    font-size:14px;
+    color:var(--ink-soft);
+    letter-spacing:.02em;
+  }
+  header.report-head .meta{
+    text-align:right;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    line-height:1.6;
+  }
+  header.report-head .meta strong{
+    color:var(--ink);
+    font-weight:600;
+  }
+
+  section{margin-bottom:34px;}
+
+  h2.section-title{
+    font-family:var(--serif);
+    font-size:19px;
+    font-weight:600;
+    color:var(--navy-deep);
+    margin:0 0 14px;
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+  }
+  h2.section-title small{
+    font-family:var(--sans);
+    font-weight:400;
+    font-size:12.5px;
+    color:var(--ink-soft);
+  }
+
+  .callout{
+    background:var(--amber-bg);
+    border:1px solid #E7CFA9;
+    border-left:4px solid var(--amber);
+    border-radius:3px;
+    padding:14px 18px;
+    font-size:13.5px;
+    color:#5B3E1A;
+  }
+  .callout strong{color:#3F2A10;}
+  .callout ul{margin:8px 0 0; padding-left:18px;}
+  .callout li{margin-bottom:4px;}
+
+  .comp-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
+    gap:10px 16px;
+  }
+  .comp-card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:10px 14px;
+    font-size:13px;
+  }
+  .comp-card.subject{
+    border-color:var(--navy);
+    box-shadow:inset 3px 0 0 var(--navy);
+  }
+  .comp-card.added{
+    box-shadow:inset 3px 0 0 var(--amber);
+  }
+  .comp-card .name{font-weight:600;color:var(--ink);}
+  .comp-card .tag{
+    display:inline-block;
+    font-size:10px;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    color:var(--amber);
+    font-weight:700;
+    margin-left:6px;
+  }
+  .comp-card .sub{color:var(--ink-soft); font-size:12px; margin-top:2px;}
+
+  .tabs{
+    display:flex;
+    gap:4px;
+    border-bottom:1px solid var(--line);
+    margin-bottom:18px;
+  }
+  .tab-btn{
+    appearance:none;
+    border:1px solid transparent;
+    border-bottom:none;
+    background:transparent;
+    font-family:var(--sans);
+    font-size:13.5px;
+    font-weight:600;
+    color:var(--ink-soft);
+    padding:9px 18px;
+    cursor:pointer;
+    border-radius:4px 4px 0 0;
+    position:relative;
+    top:1px;
+  }
+  .tab-btn:focus-visible{outline:2px solid var(--navy); outline-offset:2px;}
+  .tab-btn.active{
+    color:var(--navy-deep);
+    background:var(--surface);
+    border-color:var(--line);
+    border-bottom:1px solid var(--surface);
+  }
+  .tab-btn .n{
+    font-variant-numeric:tabular-nums;
+    color:var(--comp);
+    font-weight:400;
+    margin-left:5px;
+  }
+  .tab-btn.active .n{color:var(--navy);}
+
+  .chart-shell{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:20px 24px 12px;
+    display:grid;
+    grid-template-columns:1fr 250px;
+    gap:20px;
+  }
+  @media (max-width:820px){
+    .chart-shell{grid-template-columns:1fr;}
+  }
+  .chart-wrap{position:relative;}
+  svg.plot{width:100%; height:auto; display:block; overflow:visible;}
+  .axis line, .axis path{stroke:var(--line); }
+  .gridline{stroke:var(--line-soft); stroke-width:1;}
+  .axis-label{
+    font-family:var(--sans);
+    font-size:12px;
+    fill:var(--ink-soft);
+  }
+  .tick-label{
+    font-family:var(--sans);
+    font-size:10.5px;
+    fill:var(--ink-soft);
+    font-variant-numeric:tabular-nums;
+  }
+  .pt{cursor:pointer; transition:opacity .12s;}
+  .pt.dim{opacity:.16;}
+  .pt.subject-pt{fill:var(--navy); stroke:var(--navy-deep); stroke-width:1;}
+  .pt.comp-pt{fill:var(--comp); stroke:#6B7385; stroke-width:.75; fill-opacity:.85;}
+
+  .tooltip{
+    position:absolute;
+    pointer-events:none;
+    background:var(--navy-deep);
+    color:#EDF1F9;
+    font-size:12px;
+    line-height:1.45;
+    padding:8px 11px;
+    border-radius:4px;
+    box-shadow:0 4px 14px rgba(14,37,71,.28);
+    transform:translate(-50%,-115%);
+    white-space:nowrap;
+    opacity:0;
+    transition:opacity .1s;
+    z-index:5;
+  }
+  .tooltip.show{opacity:1;}
+  .tooltip .t-prop{font-weight:700; color:#fff;}
+  .tooltip .t-row{color:#C7D1E4;}
+
+  .legend{
+    border-left:1px solid var(--line);
+    padding-left:18px;
+    max-height:420px;
+    overflow-y:auto;
+  }
+  .legend-item{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    font-size:12.5px;
+    padding:5px 0;
+    cursor:pointer;
+    border-radius:3px;
+  }
+  .legend-item.faded{opacity:.4;}
+  .legend-item:hover{background:var(--line-soft);}
+  .legend-swatch{width:14px;height:14px;flex:none;}
+  .legend-name{color:var(--ink); flex:1;}
+  .legend-name.is-subject{color:var(--navy-deep); font-weight:700;}
+  .legend-count{
+    font-variant-numeric:tabular-nums;
+    color:var(--ink-soft);
+    font-size:11.5px;
+  }
+  .legend-hint{
+    font-size:11px;
+    color:var(--ink-soft);
+    margin-bottom:8px;
+    font-style:italic;
+  }
+
+  table.stats{
+    width:100%;
+    border-collapse:collapse;
+    font-size:13px;
+    margin-top:18px;
+  }
+  table.stats caption{
+    text-align:left;
+    font-size:11.5px;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+  }
+  table.stats th, table.stats td{
+    padding:7px 12px;
+    text-align:right;
+    border-bottom:1px solid var(--line-soft);
+    font-variant-numeric:tabular-nums;
+  }
+  table.stats th:first-child, table.stats td:first-child{
+    text-align:left;
+    font-variant-numeric:normal;
+  }
+  table.stats thead th{
+    font-weight:600;
+    color:var(--ink-soft);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    border-bottom:1px solid var(--line);
+  }
+  table.stats tbody tr.subject-row{
+    background:#EEF2FA;
+    font-weight:700;
+  }
+  table.stats tbody tr.subject-row td:first-child{color:var(--navy-deep);}
+  table.stats tbody tr.avg-row td{
+    border-top:1px solid var(--line);
+    color:var(--ink-soft);
+    font-style:italic;
+  }
+
+  footer.notes{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    border-top:1px solid var(--line);
+    padding-top:16px;
+    margin-top:40px;
+  }
+  footer.notes p{margin:0 0 8px;}
+</style>
+
+<div class="page">
+
+  <header class="report-head">
+    <div>
+      <h1>Magnolia Galleria — Competitive Rent Analysis</h1>
+      <div class="addr">13701 Montfort Drive, Dallas, TX 75240 &nbsp;·&nbsp; Dallas Midtown / Galleria submarket</div>
+    </div>
+    <div class="meta">
+      Report window: <strong>6/6/2026 – 7/6/2026</strong><br>
+      Data source: <strong>HelloData.ai</strong> unit-level export, 7/6/2026<br>
+      301 active listings across 11 properties
+    </div>
+  </header>
+
+  <section>
+    <h2 class="section-title">Competitive Set <small>reviewed against HelloData's distance/similarity-matched comps</small></h2>
+    <div class="comp-grid" id="compGrid"></div>
+    <div class="callout" style="margin-top:14px;">
+      <strong>Recommendation applied to this analysis:</strong> added four HelloData-matched properties not on the original list —
+      Merrick on Midway Apartments, Windsor By The Galleria, Midway Urban Village, Midway Row House, and Jewel On Landmark were already close
+      matches by distance and quality score, so they're included below.
+      <strong>Luxia Gallery House</strong> and <strong>Neo Midtown Apartments</strong> from your original list are real, nearby properties
+      (confirmed by web search) but are <strong>not covered by this HelloData export</strong> — see data caveats below.
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section-title">Unit-Level Scatter <small>every active listing · size (SF) vs. asking rent</small></h2>
+    <div class="tabs" id="tabs"></div>
+    <div class="chart-shell">
+      <div class="chart-wrap">
+        <svg class="plot" id="plot" viewBox="0 0 700 440"></svg>
+        <div class="tooltip" id="tooltip"></div>
+      </div>
+      <div class="legend">
+        <div class="legend-hint">Click a property to isolate it</div>
+        <div id="legendList"></div>
+      </div>
+    </div>
+    <table class="stats" id="statsTable"></table>
+  </section>
+
+  <section>
+    <h2 class="section-title">Data Caveats <small>read before circulating</small></h2>
+    <div class="callout">
+      <strong>Source cross-check not yet performed.</strong> The original ask was to reconcile apartments.com, Zillow, and HelloData and
+      flag material discrepancies. That cross-check could not be completed this round:
+      <ul>
+        <li>Direct fetches to apartments.com and Zillow were refused by this environment's network policy.</li>
+        <li>The Claude-in-Chrome browser connection needed to browse those sites live could not be established (login error on the Anthropic side).</li>
+      </ul>
+      Every point in the chart above is sourced from the HelloData unit-level export only. HelloData states its data is compiled from public
+      listing sources (including apartments.com and Zillow), so this is not a fabricated dataset — but it has <strong>not been independently
+      verified</strong> against those two sites directly. Treat single-source outliers (e.g. very high days-on-market units, or units priced
+      well off their floorplan's median) with extra scrutiny until spot-checked.
+      <br><br>
+      <strong>Not included:</strong> Luxia Gallery House and Neo Midtown Apartments have no unit-level data in this pull — add them once
+      apartments.com/Zillow access is restored, or provide an export for those two properties directly.
+    </div>
+  </section>
+
+  <footer class="notes">
+    <p>Subject property shown in navy; each competitor is assigned a distinct marker shape in gray. Hover any point for unit detail. 3-Bedroom sample size is thin (2 listings, both at Midway Urban Village) — treat that tab as directional only.</p>
+  </footer>
+</div>
+
+<script>
+const UNITS = [{"property": "Magnolia Galleria", "isSubject": true, "unitType": "Studio", "floorplan": "=\"Rose | E1\"", "unit": "=\"1123\"", "sf": 540.0, "rent": 1399.0, "psf": 2.59, "available": "Now"}, {"property": "Magnolia Galleria", "isSubject": true, "unitType": "Studio", "floorplan": "=\"Rose | E1\"", "unit": "=\"1234\"", "sf": 540.0, "rent": 1457.0, "psf": 2.7, "available": "9/10/2026"}, {"property": "Magnolia Galleria", "isSubject": true, "unitType": "Studio", "floorplan": "=\"Rose | E1\"", "unit": "=\"1406\"", "sf": 540.0, "rent": 1467.0, "psf": 2.72, "available": "7/11/2026"}, {"property": "Magnolia Galleria", "isSubject": true, "unitType": "Studio", "floorplan": "=\"Rose | E1\"", "unit": "=\"1325\"", "sf": 540.0, "rent": 1477.0, "psf": 2.74, "available": "8/8/2026"}, {"property": "Magnolia Galleria", "isSubject": true, "unitType": "Studio", "floorplan": "=\"Rose | E1\"", "unit": "=\"1333\"", "sf": 540.0, "rent": 1477.0, "psf": 2.74, "available": "8/15/2026"}, {"property": "Magnolia Galleria", "isSubject": true, "unitType": "Studio", "floorplan": "=\"Rose | E1\"", "unit": "=\"1203\"", "sf": 540.0, "rent": 1477.0, "psf": 2.74, "available": "8/15/2026"}, {"property": "Magnolia Galleria", "isSubject": true, "unitType": "Studio", "floorplan": "=\"Rose | E1\"", "unit": "=\"1128\"", "sf": 540.0, "rent": 1482.0, "psf": 2.74, "available": "Now"}, {"property": "Magnolia Galleria", "isSubject": true, "unitType": "Studio", "floorplan": "=\"Rose | E1\"", "unit": "=\"1116\"", "sf": 540.0, "rent": 1482.0, "psf": 2.74, "available": "8/22/2026"}, {"property": "Magnolia Galleria", "isSubject": true, "unitType": "1 Bed", "floorplan": "=\"Freesia | A2\"", "unit": "=\"1447\"", "sf": 715.0, "rent": 1779.0, "psf": 2.49, "available": "9/5/2026"}, {"property": "Magnolia Galleria", "isSubject": true, "unitType": "1 Bed", "floorplan": "=\"Iris | A2b\"", "unit": "=\"1222\"", "sf": 768.0, "rent": 1799.0, "psf": 2.34, "available": "Now"}, {"property": "Magnolia Galleria", "isSubject": true, "unitType": "1 Bed", "floorplan": "=\"Orchid | A4a\"", "unit": "=\"1332\"", "sf": 803.0, "rent": 1981.0, "psf": 2.47, "available": "Now"}, {"property": "Magnolia Galleria", "isSubject": true, "unitType": "1 Bed", "floorplan": "=\"Daisy | A4\"", "unit": "=\"1443\"", "sf": 820.0, "rent": 1999.0, "psf": 2.44, "available": "Now"}, {"property": "Magnolia Galleria", "isSubject": true, "unitType": "2 Bed", "floorplan": "=\"Gardenia | B2\"", "unit": "=\"1317\"", "sf": 1249.0, "rent": 2648.0, "psf": 2.12, "available": "8/28/2026"}, {"property": "Magnolia Galleria", "isSubject": true, "unitType": "2 Bed", "floorplan": "=\"Primrose | B1\"", "unit": "=\"1141\"", "sf": 1097.0, "rent": 2199.0, "psf": 2.0, "available": "Now"}, {"property": "Magnolia Galleria", "isSubject": true, "unitType": "2 Bed", "floorplan": "=\"Gardenia | B2\"", "unit": "=\"1417\"", "sf": 1249.0, "rent": 2658.0, "psf": 2.13, "available": "9/1/2026"}, {"property": "Magnolia Galleria", "isSubject": true, "unitType": "2 Bed", "floorplan": "=\"Gardenia | B2\"", "unit": "=\"1131\"", "sf": 1270.0, "rent": 2744.0, "psf": 2.16, "available": "8/20/2026"}, {"property": "Alexan at the Galleria", "isSubject": false, "unitType": "Studio", "floorplan": "=\"S1\"", "unit": "=\"539\"", "sf": 546.0, "rent": 1365.0, "psf": 2.5, "available": "Now"}, {"property": "Alexan at the Galleria", "isSubject": false, "unitType": "Studio", "floorplan": "=\"S1\"", "unit": "=\"541\"", "sf": 546.0, "rent": 1365.0, "psf": 2.5, "available": "Now"}, {"property": "Alexan at the Galleria", "isSubject": false, "unitType": "Studio", "floorplan": "=\"S2\"", "unit": "=\"558\"", "sf": 589.0, "rent": 1655.0, "psf": 2.81, "available": "9/6/2026"}, {"property": "Alexan at the Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A1\"", "unit": "=\"101\"", "sf": 674.0, "rent": 1725.0, "psf": 2.56, "available": "Now"}, {"property": "Alexan at the Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A1\"", "unit": "=\"247\"", "sf": 674.0, "rent": 1755.0, "psf": 2.6, "available": "Now"}, {"property": "Alexan at the Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A2\"", "unit": "=\"435\"", "sf": 776.0, "rent": 1765.0, "psf": 2.27, "available": "8/1/2026"}, {"property": "Alexan at the Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A3\"", "unit": "=\"505\"", "sf": 802.0, "rent": 2040.0, "psf": 2.54, "available": "8/30/2026"}, {"property": "Alexan at the Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A4\"", "unit": "=\"107\"", "sf": 852.0, "rent": 2055.0, "psf": 2.41, "available": "Now"}, {"property": "Alexan at the Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A4\"", "unit": "=\"256\"", "sf": 852.0, "rent": 2140.0, "psf": 2.51, "available": "Now"}, {"property": "Alexan at the Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A4\"", "unit": "=\"252\"", "sf": 852.0, "rent": 2140.0, "psf": 2.51, "available": "Now"}, {"property": "Alexan at the Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A5\"", "unit": "=\"209\"", "sf": 900.0, "rent": 2320.0, "psf": 2.58, "available": "8/8/2026"}, {"property": "Alexan at the Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A5\"", "unit": "=\"509\"", "sf": 900.0, "rent": 2440.0, "psf": 2.71, "available": "Now"}, {"property": "Alexan at the Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A6\"", "unit": "=\"240\"", "sf": 955.0, "rent": 2405.0, "psf": 2.52, "available": "7/27/2026"}, {"property": "Alexan at the Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A6\"", "unit": "=\"340\"", "sf": 955.0, "rent": 2410.0, "psf": 2.52, "available": "Now"}, {"property": "Alexan at the Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A6\"", "unit": "=\"440\"", "sf": 955.0, "rent": 2440.0, "psf": 2.55, "available": "Now"}, {"property": "Alexan at the Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A7\"", "unit": "=\"214\"", "sf": 1030.0, "rent": 2485.0, "psf": 2.41, "available": "Now"}, {"property": "Alexan at the Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A7\"", "unit": "=\"514\"", "sf": 1030.0, "rent": 2540.0, "psf": 2.47, "available": "Now"}, {"property": "Alexan at the Galleria", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B1\"", "unit": "=\"350\"", "sf": 1114.0, "rent": 2520.0, "psf": 2.26, "available": "8/11/2026"}, {"property": "Alexan at the Galleria", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B1\"", "unit": "=\"529\"", "sf": 1114.0, "rent": 2520.0, "psf": 2.26, "available": "Now"}, {"property": "Alexan at the Galleria", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B1\"", "unit": "=\"450\"", "sf": 1114.0, "rent": 2610.0, "psf": 2.34, "available": "Now"}, {"property": "Alexan at the Galleria", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B1\"", "unit": "=\"124\"", "sf": 1114.0, "rent": 2660.0, "psf": 2.39, "available": "Now"}, {"property": "Alexan at the Galleria", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B1\"", "unit": "=\"524\"", "sf": 1114.0, "rent": 2795.0, "psf": 2.51, "available": "Now"}, {"property": "Alexan at the Galleria", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B2\"", "unit": "=\"410\"", "sf": 1195.0, "rent": 2775.0, "psf": 2.32, "available": "Now"}, {"property": "Alexan at the Galleria", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B4\"", "unit": "=\"513\"", "sf": 1263.0, "rent": 2770.0, "psf": 2.19, "available": "Now"}, {"property": "Alexan at the Galleria", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B5\"", "unit": "=\"517\"", "sf": 1394.0, "rent": 3090.0, "psf": 2.22, "available": "Now"}, {"property": "Muse At Midtown", "isSubject": false, "unitType": "Studio", "floorplan": "=\"S1A\"", "unit": "=\"607\"", "sf": 480.0, "rent": 1396.0, "psf": 2.91, "available": "10/9/2026"}, {"property": "Muse At Midtown", "isSubject": false, "unitType": "Studio", "floorplan": "=\"S1\"", "unit": "=\"510\"", "sf": 496.0, "rent": 1346.0, "psf": 2.71, "available": "9/1/2026"}, {"property": "Muse At Midtown", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A1\"", "unit": "=\"442\"", "sf": 581.0, "rent": 1521.0, "psf": 2.62, "available": "Now"}, {"property": "Muse At Midtown", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A1\"", "unit": "=\"240\"", "sf": 581.0, "rent": 1521.0, "psf": 2.62, "available": "8/7/2026"}, {"property": "Muse At Midtown", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A1\"", "unit": "=\"242\"", "sf": 581.0, "rent": 1521.0, "psf": 2.62, "available": "7/13/2026"}, {"property": "Muse At Midtown", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A1\"", "unit": "=\"540\"", "sf": 581.0, "rent": 1561.0, "psf": 2.69, "available": "Now"}, {"property": "Muse At Midtown", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A1A\"", "unit": "=\"653\"", "sf": 590.0, "rent": 1616.0, "psf": 2.74, "available": "8/3/2026"}, {"property": "Muse At Midtown", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A1A\"", "unit": "=\"606\"", "sf": 590.0, "rent": 1656.0, "psf": 2.81, "available": "Now"}, {"property": "Muse At Midtown", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A2\"", "unit": "=\"654\"", "sf": 665.0, "rent": 1726.0, "psf": 2.6, "available": "9/10/2026"}, {"property": "Muse At Midtown", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A3\"", "unit": "=\"258\"", "sf": 673.0, "rent": 1626.0, "psf": 2.42, "available": "Now"}, {"property": "Muse At Midtown", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A5\"", "unit": "=\"515\"", "sf": 728.0, "rent": 1671.0, "psf": 2.3, "available": "9/22/2026"}, {"property": "Muse At Midtown", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A2\"", "unit": "=\"611\"", "sf": 744.0, "rent": 1831.0, "psf": 2.46, "available": "7/20/2026"}, {"property": "Muse At Midtown", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A7\"", "unit": "=\"631\"", "sf": 823.0, "rent": 1885.0, "psf": 2.29, "available": "8/24/2026"}, {"property": "Muse At Midtown", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A8A\"", "unit": "=\"438\"", "sf": 831.0, "rent": 1855.0, "psf": 2.23, "available": "8/11/2026"}, {"property": "Muse At Midtown", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A8A\"", "unit": "=\"436\"", "sf": 831.0, "rent": 1855.0, "psf": 2.23, "available": "8/21/2026"}, {"property": "Muse At Midtown", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A8A\"", "unit": "=\"309\"", "sf": 831.0, "rent": 1855.0, "psf": 2.23, "available": "8/11/2026"}, {"property": "Muse At Midtown", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A8\"", "unit": "=\"402\"", "sf": 868.0, "rent": 1945.0, "psf": 2.24, "available": "10/12/2026"}, {"property": "Muse At Midtown", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A8\"", "unit": "=\"445\"", "sf": 868.0, "rent": 1960.0, "psf": 2.26, "available": "8/28/2026"}, {"property": "Muse At Midtown", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A8\"", "unit": "=\"545\"", "sf": 868.0, "rent": 1960.0, "psf": 2.26, "available": "8/11/2026"}, {"property": "Muse At Midtown", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A7B\"", "unit": "=\"322\"", "sf": 872.0, "rent": 1970.0, "psf": 2.26, "available": "7/10/2026"}, {"property": "Muse At Midtown", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A8B\"", "unit": "=\"412\"", "sf": 902.0, "rent": 2020.0, "psf": 2.24, "available": "7/29/2026"}, {"property": "Muse At Midtown", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B2\"", "unit": "=\"437\"", "sf": 1081.0, "rent": 2099.0, "psf": 1.94, "available": "9/6/2026"}, {"property": "Muse At Midtown", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B2D\"", "unit": "=\"650\"", "sf": 1133.0, "rent": 2244.0, "psf": 1.98, "available": "9/8/2026"}, {"property": "Muse At Midtown", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B4\"", "unit": "=\"252\"", "sf": 1170.0, "rent": 2189.0, "psf": 1.87, "available": "Now"}, {"property": "Muse At Midtown", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B4\"", "unit": "=\"552\"", "sf": 1170.0, "rent": 2229.0, "psf": 1.91, "available": "9/29/2026"}, {"property": "Muse At Midtown", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B2A\"", "unit": "=\"401\"", "sf": 1171.0, "rent": 2234.0, "psf": 1.91, "available": "Now"}, {"property": "Muse At Midtown", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B2A\"", "unit": "=\"601\"", "sf": 1171.0, "rent": 2349.0, "psf": 2.01, "available": "Now"}, {"property": "Muse At Midtown", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B5\"", "unit": "=\"514\"", "sf": 1192.0, "rent": 2249.0, "psf": 1.89, "available": "9/9/2026"}, {"property": "Muse At Midtown", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B5\"", "unit": "=\"614\"", "sf": 1192.0, "rent": 2364.0, "psf": 1.98, "available": "7/11/2026"}, {"property": "Muse At Midtown", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B3\"", "unit": "=\"355\"", "sf": 1193.0, "rent": 2229.0, "psf": 1.87, "available": "9/25/2026"}, {"property": "Muse At Midtown", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B3\"", "unit": "=\"424\"", "sf": 1193.0, "rent": 2269.0, "psf": 1.9, "available": "7/27/2026"}, {"property": "Muse At Midtown", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B5B\"", "unit": "=\"649\"", "sf": 1206.0, "rent": 2304.0, "psf": 1.91, "available": "9/26/2026"}, {"property": "Cornell Midtown", "isSubject": false, "unitType": "Studio", "floorplan": "=\"S01\"", "unit": "=\"518\"", "sf": 581.0, "rent": 1537.0, "psf": 2.65, "available": "8/20/2026"}, {"property": "Cornell Midtown", "isSubject": false, "unitType": "Studio", "floorplan": "=\"A02\"", "unit": "=\"411\"", "sf": 615.0, "rent": 1351.0, "psf": 2.2, "available": "9/1/2026"}, {"property": "Cornell Midtown", "isSubject": false, "unitType": "Studio", "floorplan": "=\"A04\"", "unit": "=\"265\"", "sf": 690.0, "rent": 1466.0, "psf": 2.12, "available": "7/20/2026"}, {"property": "Cornell Midtown", "isSubject": false, "unitType": "Studio", "floorplan": "=\"A04\"", "unit": "=\"343\"", "sf": 690.0, "rent": 1476.0, "psf": 2.14, "available": "8/17/2026"}, {"property": "Cornell Midtown", "isSubject": false, "unitType": "Studio", "floorplan": "=\"A04\"", "unit": "=\"565\"", "sf": 690.0, "rent": 1521.0, "psf": 2.2, "available": "7/26/2026"}, {"property": "Cornell Midtown", "isSubject": false, "unitType": "Studio", "floorplan": "=\"A04\"", "unit": "=\"564\"", "sf": 690.0, "rent": 1521.0, "psf": 2.2, "available": "8/13/2026"}, {"property": "Cornell Midtown", "isSubject": false, "unitType": "Studio", "floorplan": "=\"A05\"", "unit": "=\"137\"", "sf": 727.0, "rent": 1486.0, "psf": 2.04, "available": "7/7/2026"}, {"property": "Cornell Midtown", "isSubject": false, "unitType": "Studio", "floorplan": "=\"A05\"", "unit": "=\"431\"", "sf": 727.0, "rent": 1491.0, "psf": 2.05, "available": "9/4/2026"}, {"property": "Cornell Midtown", "isSubject": false, "unitType": "Studio", "floorplan": "=\"A08\"", "unit": "=\"221\"", "sf": 774.0, "rent": 1701.0, "psf": 2.2, "available": "8/22/2026"}, {"property": "Cornell Midtown", "isSubject": false, "unitType": "Studio", "floorplan": "=\"A08\"", "unit": "=\"471\"", "sf": 774.0, "rent": 1721.0, "psf": 2.22, "available": "Now"}, {"property": "Cornell Midtown", "isSubject": false, "unitType": "Studio", "floorplan": "=\"A08\"", "unit": "=\"571\"", "sf": 774.0, "rent": 1756.0, "psf": 2.27, "available": "7/29/2026"}, {"property": "Cornell Midtown", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A06\"", "unit": "=\"349\"", "sf": 737.0, "rent": 1633.0, "psf": 2.22, "available": "8/21/2026"}, {"property": "Cornell Midtown", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A06\"", "unit": "=\"105\"", "sf": 737.0, "rent": 1638.0, "psf": 2.22, "available": "9/5/2026"}, {"property": "Cornell Midtown", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A07\"", "unit": "=\"401\"", "sf": 759.0, "rent": 1631.0, "psf": 2.15, "available": "9/6/2026"}, {"property": "Cornell Midtown", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A09\"", "unit": "=\"426\"", "sf": 850.0, "rent": 1686.0, "psf": 1.98, "available": "8/26/2026"}, {"property": "Cornell Midtown", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A09\"", "unit": "=\"328\"", "sf": 850.0, "rent": 1691.0, "psf": 1.99, "available": "8/7/2026"}, {"property": "Cornell Midtown", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A13D\"", "unit": "=\"350\"", "sf": 956.0, "rent": 1821.0, "psf": 1.9, "available": "9/6/2026"}, {"property": "Cornell Midtown", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A13D\"", "unit": "=\"436\"", "sf": 956.0, "rent": 1831.0, "psf": 1.92, "available": "8/24/2026"}, {"property": "Cornell Midtown", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A13D\"", "unit": "=\"452\"", "sf": 956.0, "rent": 1831.0, "psf": 1.92, "available": "8/5/2026"}, {"property": "Cornell Midtown", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A13D\"", "unit": "=\"152\"", "sf": 956.0, "rent": 1851.0, "psf": 1.94, "available": "7/14/2026"}, {"property": "Cornell Midtown", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A13D\"", "unit": "=\"344\"", "sf": 956.0, "rent": 1856.0, "psf": 1.94, "available": "9/12/2026"}, {"property": "Cornell Midtown", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A13D\"", "unit": "=\"532\"", "sf": 956.0, "rent": 1866.0, "psf": 1.95, "available": "8/16/2026"}, {"property": "Cornell Midtown", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B3\"", "unit": "=\"462\"", "sf": 1228.0, "rent": 2364.0, "psf": 1.93, "available": "8/27/2026"}, {"property": "Cornell Midtown", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B3\"", "unit": "=\"362\"", "sf": 1228.0, "rent": 2399.0, "psf": 1.95, "available": "7/14/2026"}, {"property": "Cornell Midtown", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B04\"", "unit": "=\"538\"", "sf": 1340.0, "rent": 2721.0, "psf": 2.03, "available": "7/22/2026"}, {"property": "Cornell Midtown", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B02\"", "unit": "=\"435\"", "sf": 1224.0, "rent": 2299.0, "psf": 1.88, "available": "Now"}, {"property": "Merrick on Midway Apartments", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A1\"", "unit": "=\"1238\"", "sf": 728.0, "rent": 1839.0, "psf": 2.53, "available": "Now"}, {"property": "Merrick on Midway Apartments", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A3\"", "unit": "=\"1350\"", "sf": 775.0, "rent": 1864.0, "psf": 2.41, "available": "Now"}, {"property": "Merrick on Midway Apartments", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A4\"", "unit": "=\"1433\"", "sf": 776.0, "rent": 1919.0, "psf": 2.47, "available": "Now"}, {"property": "Merrick on Midway Apartments", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A4\"", "unit": "=\"1341\"", "sf": 776.0, "rent": 1919.0, "psf": 2.47, "available": "Now"}, {"property": "Merrick on Midway Apartments", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A4\"", "unit": "=\"1241\"", "sf": 776.0, "rent": 1919.0, "psf": 2.47, "available": "Now"}, {"property": "Merrick on Midway Apartments", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A4\"", "unit": "=\"1441\"", "sf": 776.0, "rent": 1919.0, "psf": 2.47, "available": "Now"}, {"property": "Merrick on Midway Apartments", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A4\"", "unit": "=\"1233\"", "sf": 776.0, "rent": 1919.0, "psf": 2.47, "available": "Now"}, {"property": "Merrick on Midway Apartments", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A4\"", "unit": "=\"1333\"", "sf": 776.0, "rent": 1919.0, "psf": 2.47, "available": "Now"}, {"property": "Merrick on Midway Apartments", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A4\"", "unit": "=\"1141\"", "sf": 776.0, "rent": 1959.0, "psf": 2.52, "available": "Now"}, {"property": "Merrick on Midway Apartments", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A4\"", "unit": "=\"1133\"", "sf": 776.0, "rent": 1959.0, "psf": 2.52, "available": "Now"}, {"property": "Merrick on Midway Apartments", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A6D\"", "unit": "=\"1254\"", "sf": 805.0, "rent": 2079.0, "psf": 2.58, "available": "Now"}, {"property": "Merrick on Midway Apartments", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A6D\"", "unit": "=\"1334\"", "sf": 828.0, "rent": 2074.0, "psf": 2.5, "available": "Now"}, {"property": "Merrick on Midway Apartments", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A6D\"", "unit": "=\"1134\"", "sf": 828.0, "rent": 2114.0, "psf": 2.55, "available": "Now"}, {"property": "Merrick on Midway Apartments", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B1\"", "unit": "=\"1344\"", "sf": 1100.0, "rent": 2527.0, "psf": 2.3, "available": "Now"}, {"property": "Merrick on Midway Apartments", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B1\"", "unit": "=\"1244\"", "sf": 1100.0, "rent": 2567.0, "psf": 2.33, "available": "Now"}, {"property": "Merrick on Midway Apartments", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B1\"", "unit": "=\"1544\"", "sf": 1100.0, "rent": 2647.0, "psf": 2.41, "available": "Now"}, {"property": "Merrick on Midway Apartments", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B2\"", "unit": "=\"1445\"", "sf": 1158.0, "rent": 2632.0, "psf": 2.27, "available": "Now"}, {"property": "Merrick on Midway Apartments", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B2\"", "unit": "=\"1245\"", "sf": 1158.0, "rent": 2672.0, "psf": 2.31, "available": "Now"}, {"property": "Merrick on Midway Apartments", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B2\"", "unit": "=\"1342\"", "sf": 1176.0, "rent": 2602.0, "psf": 2.21, "available": "Now"}, {"property": "Merrick on Midway Apartments", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B2\"", "unit": "=\"1446\"", "sf": 1176.0, "rent": 2602.0, "psf": 2.21, "available": "Now"}, {"property": "Merrick on Midway Apartments", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B2\"", "unit": "=\"1246\"", "sf": 1176.0, "rent": 2642.0, "psf": 2.25, "available": "Now"}, {"property": "Merrick on Midway Apartments", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B2\"", "unit": "=\"1242\"", "sf": 1176.0, "rent": 2672.0, "psf": 2.27, "available": "Now"}, {"property": "Merrick on Midway Apartments", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B2\"", "unit": "=\"1542\"", "sf": 1176.0, "rent": 2722.0, "psf": 2.31, "available": "Now"}, {"property": "Merrick on Midway Apartments", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B2\"", "unit": "=\"1546\"", "sf": 1176.0, "rent": 2722.0, "psf": 2.31, "available": "Now"}, {"property": "Merrick on Midway Apartments", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B3\"", "unit": "=\"1447\"", "sf": 1232.0, "rent": 2822.0, "psf": 2.29, "available": "Now"}, {"property": "Merrick on Midway Apartments", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B3\"", "unit": "=\"1247\"", "sf": 1232.0, "rent": 2862.0, "psf": 2.32, "available": "Now"}, {"property": "Merrick on Midway Apartments", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B5\"", "unit": "=\"1436\"", "sf": 1389.0, "rent": 3087.0, "psf": 2.22, "available": "Now"}, {"property": "Windsor By The Galleria", "isSubject": false, "unitType": "Studio", "floorplan": "=\"S1\"", "unit": "=\"505\"", "sf": 581.0, "rent": 1713.0, "psf": 2.95, "available": "8/15/2026"}, {"property": "Windsor By The Galleria", "isSubject": false, "unitType": "Studio", "floorplan": "=\"S2\"", "unit": "=\"307\"", "sf": 656.0, "rent": 1590.0, "psf": 2.42, "available": "9/5/2026"}, {"property": "Windsor By The Galleria", "isSubject": false, "unitType": "Studio", "floorplan": "=\"S4\"", "unit": "=\"414\"", "sf": 660.0, "rent": 1965.0, "psf": 2.98, "available": "Now"}, {"property": "Windsor By The Galleria", "isSubject": false, "unitType": "Studio", "floorplan": "=\"S4\"", "unit": "=\"354\"", "sf": 660.0, "rent": 1975.0, "psf": 2.99, "available": "Now"}, {"property": "Windsor By The Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A1\"", "unit": "=\"349\"", "sf": 619.0, "rent": 1720.0, "psf": 2.78, "available": "9/5/2026"}, {"property": "Windsor By The Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A1\"", "unit": "=\"209\"", "sf": 619.0, "rent": 1869.0, "psf": 3.02, "available": "Now"}, {"property": "Windsor By The Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A1\"", "unit": "=\"263\"", "sf": 619.0, "rent": 1906.0, "psf": 3.08, "available": "7/11/2026"}, {"property": "Windsor By The Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A5\"", "unit": "=\"231\"", "sf": 703.0, "rent": 1710.0, "psf": 2.43, "available": "9/5/2026"}, {"property": "Windsor By The Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A5\"", "unit": "=\"132\"", "sf": 703.0, "rent": 1916.0, "psf": 2.73, "available": "Now"}, {"property": "Windsor By The Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A5\"", "unit": "=\"329\"", "sf": 708.0, "rent": 1927.0, "psf": 2.72, "available": "Now"}, {"property": "Windsor By The Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A7.2\"", "unit": "=\"160\"", "sf": 796.0, "rent": 2162.0, "psf": 2.72, "available": "Now"}, {"property": "Windsor By The Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A7\"", "unit": "=\"437\"", "sf": 800.0, "rent": 2006.0, "psf": 2.51, "available": "Now"}, {"property": "Windsor By The Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A7\"", "unit": "=\"265\"", "sf": 800.0, "rent": 2059.0, "psf": 2.57, "available": "8/22/2026"}, {"property": "Windsor By The Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A7\"", "unit": "=\"565\"", "sf": 800.0, "rent": 2104.0, "psf": 2.63, "available": "8/15/2026"}, {"property": "Windsor By The Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A7\"", "unit": "=\"156\"", "sf": 800.0, "rent": 2152.0, "psf": 2.69, "available": "Now"}, {"property": "Windsor By The Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A9\"", "unit": "=\"440\"", "sf": 830.0, "rent": 2147.0, "psf": 2.59, "available": "Now"}, {"property": "Windsor By The Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A10\"", "unit": "=\"523\"", "sf": 847.0, "rent": 2054.0, "psf": 2.43, "available": "8/29/2026"}, {"property": "Windsor By The Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A11\"", "unit": "=\"216\"", "sf": 864.0, "rent": 2159.0, "psf": 2.5, "available": "8/1/2026"}, {"property": "Windsor By The Galleria", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B4.2\"", "unit": "=\"402\"", "sf": 1231.0, "rent": 2326.0, "psf": 1.89, "available": "9/5/2026"}, {"property": "Windsor By The Galleria", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B4.2\"", "unit": "=\"404\"", "sf": 1231.0, "rent": 2333.0, "psf": 1.9, "available": "Now"}, {"property": "Windsor By The Galleria", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B5\"", "unit": "=\"200\"", "sf": 1427.0, "rent": 2442.0, "psf": 1.71, "available": "8/22/2026"}, {"property": "Windsor By The Galleria", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B5\"", "unit": "=\"139\"", "sf": 1427.0, "rent": 2472.0, "psf": 1.73, "available": "8/8/2026"}, {"property": "Windsor By The Galleria", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B5\"", "unit": "=\"239\"", "sf": 1427.0, "rent": 2523.0, "psf": 1.77, "available": "Now"}, {"property": "Windsor By The Galleria", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B6TH\"", "unit": "=\"511\"", "sf": 1427.0, "rent": 2552.0, "psf": 1.79, "available": "8/8/2026"}, {"property": "Windsor By The Galleria", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B6TH\"", "unit": "=\"512\"", "sf": 1475.0, "rent": 2688.0, "psf": 1.82, "available": "Now"}, {"property": "Hazel by the Galleria", "isSubject": false, "unitType": "Studio", "floorplan": "=\"S2\"", "unit": "=\"670\"", "sf": 478.0, "rent": 1328.0, "psf": 2.78, "available": "10/6/2026"}, {"property": "Hazel by the Galleria", "isSubject": false, "unitType": "Studio", "floorplan": "=\"S1\"", "unit": "=\"467\"", "sf": 478.0, "rent": 1367.0, "psf": 2.86, "available": "7/11/2026"}, {"property": "Hazel by the Galleria", "isSubject": false, "unitType": "Studio", "floorplan": "=\"S2\"", "unit": "=\"131\"", "sf": 478.0, "rent": 1478.0, "psf": 3.09, "available": "8/10/2026"}, {"property": "Hazel by the Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A1\"", "unit": "=\"311\"", "sf": 658.0, "rent": 1726.0, "psf": 2.62, "available": "10/3/2026"}, {"property": "Hazel by the Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A1\"", "unit": "=\"206\"", "sf": 658.0, "rent": 1731.0, "psf": 2.63, "available": "8/10/2026"}, {"property": "Hazel by the Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A1\"", "unit": "=\"149\"", "sf": 658.0, "rent": 1770.0, "psf": 2.69, "available": "Now"}, {"property": "Hazel by the Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A3\"", "unit": "=\"312\"", "sf": 689.0, "rent": 1886.0, "psf": 2.74, "available": "Now"}, {"property": "Hazel by the Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A3\"", "unit": "=\"218\"", "sf": 689.0, "rent": 1920.0, "psf": 2.79, "available": "8/27/2026"}, {"property": "Hazel by the Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A3\"", "unit": "=\"275\"", "sf": 689.0, "rent": 1935.0, "psf": 2.81, "available": "8/23/2026"}, {"property": "Hazel by the Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A5\"", "unit": "=\"339\"", "sf": 713.0, "rent": 1758.0, "psf": 2.47, "available": "8/17/2026"}, {"property": "Hazel by the Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A5\"", "unit": "=\"243\"", "sf": 713.0, "rent": 1763.0, "psf": 2.47, "available": "9/5/2026"}, {"property": "Hazel by the Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A5\"", "unit": "=\"445\"", "sf": 713.0, "rent": 1768.0, "psf": 2.48, "available": "7/16/2026"}, {"property": "Hazel by the Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A5\"", "unit": "=\"458\"", "sf": 713.0, "rent": 1768.0, "psf": 2.48, "available": "9/8/2026"}, {"property": "Hazel by the Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A4\"", "unit": "=\"307\"", "sf": 713.0, "rent": 1795.0, "psf": 2.52, "available": "7/9/2026"}, {"property": "Hazel by the Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A4\"", "unit": "=\"607\"", "sf": 713.0, "rent": 1796.0, "psf": 2.52, "available": "Now"}, {"property": "Hazel by the Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A5\"", "unit": "=\"539\"", "sf": 713.0, "rent": 1798.0, "psf": 2.52, "available": "Now"}, {"property": "Hazel by the Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A5\"", "unit": "=\"545\"", "sf": 713.0, "rent": 1808.0, "psf": 2.54, "available": "Now"}, {"property": "Hazel by the Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A5\"", "unit": "=\"543\"", "sf": 713.0, "rent": 1808.0, "psf": 2.54, "available": "Now"}, {"property": "Hazel by the Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A5\"", "unit": "=\"634\"", "sf": 713.0, "rent": 1833.0, "psf": 2.57, "available": "7/10/2026"}, {"property": "Hazel by the Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A5\"", "unit": "=\"643\"", "sf": 713.0, "rent": 1848.0, "psf": 2.59, "available": "9/19/2026"}, {"property": "Hazel by the Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A5\"", "unit": "=\"651\"", "sf": 713.0, "rent": 1863.0, "psf": 2.61, "available": "8/21/2026"}, {"property": "Hazel by the Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A5\"", "unit": "=\"438\"", "sf": 713.0, "rent": 1868.0, "psf": 2.62, "available": "11/5/2026"}, {"property": "Hazel by the Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A5\"", "unit": "=\"613\"", "sf": 713.0, "rent": 1883.0, "psf": 2.64, "available": "8/28/2026"}, {"property": "Hazel by the Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A5\"", "unit": "=\"113\"", "sf": 713.0, "rent": 1918.0, "psf": 2.69, "available": "7/23/2026"}, {"property": "Hazel by the Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A5\"", "unit": "=\"174\"", "sf": 713.0, "rent": 1933.0, "psf": 2.71, "available": "9/6/2026"}, {"property": "Hazel by the Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A5\"", "unit": "=\"158\"", "sf": 713.0, "rent": 1973.0, "psf": 2.77, "available": "8/19/2026"}, {"property": "Hazel by the Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A5\"", "unit": "=\"156\"", "sf": 713.0, "rent": 1988.0, "psf": 2.79, "available": "7/30/2026"}, {"property": "Hazel by the Galleria", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B2\"", "unit": "=\"554\"", "sf": 1077.0, "rent": 2417.0, "psf": 2.24, "available": "9/14/2026"}, {"property": "Hazel by the Galleria", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B2\"", "unit": "=\"227\"", "sf": 1077.0, "rent": 2497.0, "psf": 2.32, "available": "9/17/2026"}, {"property": "Hazel by the Galleria", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B3\"", "unit": "=\"510\"", "sf": 1108.0, "rent": 2722.0, "psf": 2.46, "available": "7/26/2026"}, {"property": "Hazel by the Galleria", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B3B\"", "unit": "=\"322\"", "sf": 1108.0, "rent": 2777.0, "psf": 2.51, "available": "7/25/2026"}, {"property": "Hazel by the Galleria", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B3A\"", "unit": "=\"121\"", "sf": 1114.0, "rent": 2886.0, "psf": 2.59, "available": "8/6/2026"}, {"property": "Hazel by the Galleria", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B3E\"", "unit": "=\"253\"", "sf": 1123.0, "rent": 2652.0, "psf": 2.36, "available": "1/11/2028"}, {"property": "Hazel by the Galleria", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B3E\"", "unit": "=\"232\"", "sf": 1123.0, "rent": 2742.0, "psf": 2.44, "available": "9/15/2026"}, {"property": "Hazel by the Galleria", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B3C\"", "unit": "=\"169\"", "sf": 1123.0, "rent": 2787.0, "psf": 2.48, "available": "9/15/2026"}, {"property": "Hazel by the Galleria", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B3E\"", "unit": "=\"453\"", "sf": 1123.0, "rent": 2872.0, "psf": 2.56, "available": "Now"}, {"property": "Hazel by the Galleria", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B3D\"", "unit": "=\"362\"", "sf": 1161.0, "rent": 2672.0, "psf": 2.3, "available": "8/24/2026"}, {"property": "Midway Urban Village", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"Chelsea\"", "unit": "=\"04104\"", "sf": 956.0, "rent": 2150.0, "psf": 2.25, "available": "9/21/2026"}, {"property": "Midway Urban Village", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"Chelsea\"", "unit": "=\"11110\"", "sf": 956.0, "rent": 2250.0, "psf": 2.35, "available": "9/10/2026"}, {"property": "Midway Urban Village", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"Ellis\"", "unit": "=\"18107\"", "sf": 1030.0, "rent": 2350.0, "psf": 2.28, "available": "8/4/2026"}, {"property": "Midway Urban Village", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"Ellis\"", "unit": "=\"15101\"", "sf": 1030.0, "rent": 2468.0, "psf": 2.4, "available": "10/10/2026"}, {"property": "Midway Urban Village", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"Soho\"", "unit": "=\"09402\"", "sf": 555.0, "rent": 1410.0, "psf": 2.54, "available": "7/14/2026"}, {"property": "Midway Urban Village", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"Soho\"", "unit": "=\"09302\"", "sf": 555.0, "rent": 1410.0, "psf": 2.54, "available": "7/13/2026"}, {"property": "Midway Urban Village", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"Brooklyn\"", "unit": "=\"08305\"", "sf": 620.0, "rent": 1505.0, "psf": 2.43, "available": "7/28/2026"}, {"property": "Midway Urban Village", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"Manhattan\"", "unit": "=\"07301\"", "sf": 805.0, "rent": 1793.0, "psf": 2.23, "available": "10/10/2026"}, {"property": "Midway Urban Village", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"Chelsea\"", "unit": "=\"17124\"", "sf": 1008.0, "rent": 2300.0, "psf": 2.28, "available": "Now"}, {"property": "Midway Urban Village", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"Ellis\"", "unit": "=\"13103\"", "sf": 1030.0, "rent": 2350.0, "psf": 2.28, "available": "9/22/2026"}, {"property": "Midway Urban Village", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"Ellis\"", "unit": "=\"13113\"", "sf": 1030.0, "rent": 2350.0, "psf": 2.28, "available": "8/28/2026"}, {"property": "Midway Urban Village", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"Ellis\"", "unit": "=\"18118\"", "sf": 1030.0, "rent": 2350.0, "psf": 2.28, "available": "9/28/2026"}, {"property": "Midway Urban Village", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"Union\"", "unit": "=\"10114\"", "sf": 1482.0, "rent": 3225.0, "psf": 2.18, "available": "9/5/2026"}, {"property": "Midway Urban Village", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"Union\"", "unit": "=\"06106\"", "sf": 1482.0, "rent": 3425.0, "psf": 2.31, "available": "8/24/2026"}, {"property": "Midway Urban Village", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"Union\"", "unit": "=\"15103\"", "sf": 1536.0, "rent": 3250.0, "psf": 2.12, "available": "8/29/2026"}, {"property": "Midway Urban Village", "isSubject": false, "unitType": "3 Bed", "floorplan": "=\"Hudson\"", "unit": "=\"10109\"", "sf": 1639.0, "rent": 3650.0, "psf": 2.23, "available": "Now"}, {"property": "Midway Urban Village", "isSubject": false, "unitType": "3 Bed", "floorplan": "=\"Hudson\"", "unit": "=\"10101\"", "sf": 1692.0, "rent": 3699.0, "psf": 2.19, "available": "Now"}, {"property": "Midway Row House", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"The Harper\"", "unit": "=\"6112\"", "sf": 996.0, "rent": 2409.0, "psf": 2.42, "available": "10/7/2026"}, {"property": "Midway Row House", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"The Marlowe\"", "unit": "=\"10114\"", "sf": 1076.0, "rent": 2545.0, "psf": 2.37, "available": "10/7/2026"}, {"property": "Midway Row House", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"The Marlowe\"", "unit": "=\"10106\"", "sf": 1076.0, "rent": 2545.0, "psf": 2.37, "available": "8/6/2026"}, {"property": "Midway Row House", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"The Marlowe\"", "unit": "=\"10111\"", "sf": 1076.0, "rent": 2545.0, "psf": 2.37, "available": "9/7/2026"}, {"property": "Midway Row House", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"The Marlowe\"", "unit": "=\"10109\"", "sf": 1076.0, "rent": 2545.0, "psf": 2.37, "available": "9/3/2026"}, {"property": "Midway Row House", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"The Sage\"", "unit": "=\"2103\"", "sf": 574.0, "rent": 1475.0, "psf": 2.57, "available": "Now"}, {"property": "Midway Row House", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"The Sage\"", "unit": "=\"2105\"", "sf": 574.0, "rent": 1574.0, "psf": 2.74, "available": "Now"}, {"property": "Midway Row House", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"The Willow\"", "unit": "=\"2301\"", "sf": 587.0, "rent": 1589.0, "psf": 2.71, "available": "9/25/2026"}, {"property": "Midway Row House", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"The Willow\"", "unit": "=\"2401\"", "sf": 587.0, "rent": 1604.0, "psf": 2.73, "available": "Now"}, {"property": "Midway Row House", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"The Briar\"", "unit": "=\"2302\"", "sf": 642.0, "rent": 1694.0, "psf": 2.64, "available": "Now"}, {"property": "Midway Row House", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"The Laurel\"", "unit": "=\"2204\"", "sf": 648.0, "rent": 1499.0, "psf": 2.31, "available": "Now"}, {"property": "Midway Row House", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"The Laurel\"", "unit": "=\"2412\"", "sf": 648.0, "rent": 1499.0, "psf": 2.31, "available": "Now"}, {"property": "Midway Row House", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"The Laurel\"", "unit": "=\"2308\"", "sf": 648.0, "rent": 1499.0, "psf": 2.31, "available": "Now"}, {"property": "Midway Row House", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"The Laurel\"", "unit": "=\"2306\"", "sf": 648.0, "rent": 1594.0, "psf": 2.46, "available": "Now"}, {"property": "Midway Row House", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"The Laurel\"", "unit": "=\"2208\"", "sf": 648.0, "rent": 1594.0, "psf": 2.46, "available": "8/3/2026"}, {"property": "Midway Row House", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"The Laurel\"", "unit": "=\"2214\"", "sf": 648.0, "rent": 1594.0, "psf": 2.46, "available": "10/3/2026"}, {"property": "Midway Row House", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"The Laurel\"", "unit": "=\"2414\"", "sf": 648.0, "rent": 1609.0, "psf": 2.48, "available": "9/3/2026"}, {"property": "Midway Row House", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"The Laurel\"", "unit": "=\"2310\"", "sf": 648.0, "rent": 1609.0, "psf": 2.48, "available": "Now"}, {"property": "Midway Row House", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"The Laurel\"", "unit": "=\"2408\"", "sf": 648.0, "rent": 1624.0, "psf": 2.51, "available": "Now"}, {"property": "Midway Row House", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"The Oaklyn\"", "unit": "=\"2309\"", "sf": 718.0, "rent": 1789.0, "psf": 2.49, "available": "7/29/2026"}, {"property": "Midway Row House", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"The Oaklyn\"", "unit": "=\"2205\"", "sf": 718.0, "rent": 1789.0, "psf": 2.49, "available": "9/8/2026"}, {"property": "Jewel On Landmark", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A1\"", "unit": "=\"1246\"", "sf": 684.0, "rent": 1455.0, "psf": 2.13, "available": "Now"}, {"property": "Jewel On Landmark", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A1\"", "unit": "=\"1206\"", "sf": 684.0, "rent": 1455.0, "psf": 2.13, "available": "Now"}, {"property": "Jewel On Landmark", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A1\"", "unit": "=\"1444\"", "sf": 684.0, "rent": 1455.0, "psf": 2.13, "available": "7/18/2026"}, {"property": "Jewel On Landmark", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A1\"", "unit": "=\"1447\"", "sf": 684.0, "rent": 1455.0, "psf": 2.13, "available": "Now"}, {"property": "Jewel On Landmark", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A1\"", "unit": "=\"1106\"", "sf": 684.0, "rent": 1479.0, "psf": 2.16, "available": "9/3/2026"}, {"property": "Jewel On Landmark", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A1\"", "unit": "=\"1138\"", "sf": 684.0, "rent": 1479.0, "psf": 2.16, "available": "Now"}, {"property": "Jewel On Landmark", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A1\"", "unit": "=\"1147\"", "sf": 684.0, "rent": 1479.0, "psf": 2.16, "available": "7/7/2026"}, {"property": "Jewel On Landmark", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A1\"", "unit": "=\"1159\"", "sf": 684.0, "rent": 1479.0, "psf": 2.16, "available": "Now"}, {"property": "Jewel On Landmark", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A1\"", "unit": "=\"1144\"", "sf": 684.0, "rent": 1479.0, "psf": 2.16, "available": "Now"}, {"property": "Jewel On Landmark", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A2\"", "unit": "=\"1202\"", "sf": 771.0, "rent": 1539.0, "psf": 2.0, "available": "8/16/2026"}, {"property": "Jewel On Landmark", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A2\"", "unit": "=\"1104\"", "sf": 771.0, "rent": 1562.0, "psf": 2.03, "available": "9/7/2026"}, {"property": "Jewel On Landmark", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A3\"", "unit": "=\"1361\"", "sf": 785.0, "rent": 1571.0, "psf": 2.0, "available": "8/1/2026"}, {"property": "Jewel On Landmark", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A3\"", "unit": "=\"1120\"", "sf": 785.0, "rent": 1596.0, "psf": 2.03, "available": "Now"}, {"property": "Jewel On Landmark", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A3\"", "unit": "=\"1356\"", "sf": 785.0, "rent": 1596.0, "psf": 2.03, "available": "Now"}, {"property": "Jewel On Landmark", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A3\"", "unit": "=\"1467\"", "sf": 785.0, "rent": 1597.0, "psf": 2.03, "available": "8/28/2026"}, {"property": "Jewel On Landmark", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A3\"", "unit": "=\"1107\"", "sf": 785.0, "rent": 1671.0, "psf": 2.13, "available": "Now"}, {"property": "Jewel On Landmark", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A3\"", "unit": "=\"1143\"", "sf": 810.0, "rent": 1681.0, "psf": 2.08, "available": "Now"}, {"property": "Jewel On Landmark", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A1 LOFT\"", "unit": "=\"1544\"", "sf": 885.0, "rent": 1871.0, "psf": 2.11, "available": "8/11/2026"}, {"property": "Jewel On Landmark", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A1 LOFT\"", "unit": "=\"1525\"", "sf": 885.0, "rent": 1871.0, "psf": 2.11, "available": "7/8/2026"}, {"property": "Jewel On Landmark", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A1 LOFT\"", "unit": "=\"1537\"", "sf": 885.0, "rent": 1871.0, "psf": 2.11, "available": "Now"}, {"property": "Jewel On Landmark", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A1 LOFT\"", "unit": "=\"1510\"", "sf": 885.0, "rent": 1871.0, "psf": 2.11, "available": "7/11/2026"}, {"property": "Jewel On Landmark", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B1\"", "unit": "=\"1409\"", "sf": 1121.0, "rent": 2049.0, "psf": 1.83, "available": "Now"}, {"property": "Jewel On Landmark", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B1\"", "unit": "=\"1262\"", "sf": 1121.0, "rent": 2147.0, "psf": 1.92, "available": "7/9/2026"}, {"property": "Jewel On Landmark", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B1\"", "unit": "=\"1421\"", "sf": 1121.0, "rent": 2157.0, "psf": 1.92, "available": "7/7/2026"}, {"property": "Jewel On Landmark", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B1\"", "unit": "=\"1558\"", "sf": 1121.0, "rent": 2196.0, "psf": 1.96, "available": "Now"}, {"property": "Jewel On Landmark", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B1\"", "unit": "=\"1109\"", "sf": 1121.0, "rent": 2221.0, "psf": 1.98, "available": "Now"}, {"property": "Jewel On Landmark", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B1\"", "unit": "=\"1458\"", "sf": 1121.0, "rent": 2147.0, "psf": 1.92, "available": "9/8/2026"}, {"property": "Jewel On Landmark", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B2\"", "unit": "=\"1229\"", "sf": 1124.0, "rent": 2122.0, "psf": 1.89, "available": "Now"}, {"property": "Jewel On Landmark", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B1\"", "unit": "=\"1436\"", "sf": 1147.0, "rent": 2158.0, "psf": 1.88, "available": "8/20/2026"}, {"property": "Jewel On Landmark", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B2\"", "unit": "=\"1323\"", "sf": 1148.0, "rent": 2121.0, "psf": 1.85, "available": "7/7/2026"}, {"property": "Jewel On Landmark", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B2\"", "unit": "=\"1352\"", "sf": 1148.0, "rent": 2146.0, "psf": 1.87, "available": "9/7/2026"}, {"property": "Jewel On Landmark", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B2\"", "unit": "=\"1454\"", "sf": 1148.0, "rent": 2147.0, "psf": 1.87, "available": "7/26/2026"}, {"property": "Jewel On Landmark", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B2\"", "unit": "=\"1565\"", "sf": 1148.0, "rent": 2196.0, "psf": 1.91, "available": "Now"}, {"property": "Jewel On Landmark", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B2\"", "unit": "=\"1330\"", "sf": 1182.0, "rent": 2156.0, "psf": 1.82, "available": "7/12/2026"}, {"property": "Jewel On Landmark", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B2\"", "unit": "=\"1334\"", "sf": 1182.0, "rent": 2156.0, "psf": 1.82, "available": "Now"}, {"property": "Jewel On Landmark", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B2\"", "unit": "=\"1130\"", "sf": 1182.0, "rent": 2231.0, "psf": 1.89, "available": "Now"}, {"property": "Alvista Galleria", "isSubject": false, "unitType": "Studio", "floorplan": "=\"E1\"", "unit": "=\"3416\"", "sf": 566.0, "rent": 1288.0, "psf": 2.28, "available": "9/10/2026"}, {"property": "Alvista Galleria", "isSubject": false, "unitType": "Studio", "floorplan": "=\"E1\"", "unit": "=\"3105\"", "sf": 566.0, "rent": 1577.0, "psf": 2.79, "available": "7/18/2026"}, {"property": "Alvista Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A1\"", "unit": "=\"1228\"", "sf": 667.0, "rent": 1342.0, "psf": 2.01, "available": "8/17/2026"}, {"property": "Alvista Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A1\"", "unit": "=\"2326\"", "sf": 667.0, "rent": 1347.0, "psf": 2.02, "available": "Now"}, {"property": "Alvista Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A1\"", "unit": "=\"3303\"", "sf": 667.0, "rent": 1367.0, "psf": 2.05, "available": "Now"}, {"property": "Alvista Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A1\"", "unit": "=\"3426\"", "sf": 667.0, "rent": 1372.0, "psf": 2.06, "available": "7/28/2026"}, {"property": "Alvista Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A1\"", "unit": "=\"3126\"", "sf": 667.0, "rent": 1432.0, "psf": 2.15, "available": "9/4/2026"}, {"property": "Alvista Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A1\"", "unit": "=\"2119\"", "sf": 667.0, "rent": 1432.0, "psf": 2.15, "available": "Now"}, {"property": "Alvista Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A1\"", "unit": "=\"2134\"", "sf": 667.0, "rent": 1432.0, "psf": 2.15, "available": "Now"}, {"property": "Alvista Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A1\"", "unit": "=\"1126\"", "sf": 667.0, "rent": 1432.0, "psf": 2.15, "available": "9/8/2026"}, {"property": "Alvista Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A1\"", "unit": "=\"3103\"", "sf": 667.0, "rent": 1452.0, "psf": 2.18, "available": "7/13/2026"}, {"property": "Alvista Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A1\"", "unit": "=\"1112\"", "sf": 667.0, "rent": 1457.0, "psf": 2.18, "available": "7/8/2026"}, {"property": "Alvista Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A1\"", "unit": "=\"1109\"", "sf": 667.0, "rent": 1467.0, "psf": 2.2, "available": "8/27/2026"}, {"property": "Alvista Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A2\"", "unit": "=\"2330\"", "sf": 700.0, "rent": 1442.0, "psf": 2.06, "available": "7/23/2026"}, {"property": "Alvista Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A3\"", "unit": "=\"3325\"", "sf": 748.0, "rent": 1517.0, "psf": 2.03, "available": "9/8/2026"}, {"property": "Alvista Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A3\"", "unit": "=\"3329\"", "sf": 748.0, "rent": 1517.0, "psf": 2.03, "available": "9/6/2026"}, {"property": "Alvista Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A3\"", "unit": "=\"1229\"", "sf": 748.0, "rent": 1527.0, "psf": 2.04, "available": "7/11/2026"}, {"property": "Alvista Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A3\"", "unit": "=\"3429\"", "sf": 748.0, "rent": 1542.0, "psf": 2.06, "available": "Now"}, {"property": "Alvista Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A3\"", "unit": "=\"3123\"", "sf": 748.0, "rent": 1602.0, "psf": 2.14, "available": "8/7/2026"}, {"property": "Alvista Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A3\"", "unit": "=\"1147\"", "sf": 748.0, "rent": 1617.0, "psf": 2.16, "available": "Now"}, {"property": "Alvista Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A5\"", "unit": "=\"1215\"", "sf": 770.0, "rent": 1512.0, "psf": 1.96, "available": "8/17/2026"}, {"property": "Alvista Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A5\"", "unit": "=\"1419\"", "sf": 770.0, "rent": 1552.0, "psf": 2.02, "available": "7/27/2026"}, {"property": "Alvista Galleria", "isSubject": false, "unitType": "1 Bed", "floorplan": "=\"A9\"", "unit": "=\"2123\"", "sf": 846.0, "rent": 1804.0, "psf": 2.13, "available": "8/3/2026"}, {"property": "Alvista Galleria", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B1\"", "unit": "=\"2336\"", "sf": 1080.0, "rent": 1834.0, "psf": 1.7, "available": "8/9/2026"}, {"property": "Alvista Galleria", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B1\"", "unit": "=\"3404\"", "sf": 1080.0, "rent": 1859.0, "psf": 1.72, "available": "Now"}, {"property": "Alvista Galleria", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B1\"", "unit": "=\"3421\"", "sf": 1080.0, "rent": 1879.0, "psf": 1.74, "available": "7/12/2026"}, {"property": "Alvista Galleria", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B2\"", "unit": "=\"3319\"", "sf": 1080.0, "rent": 1909.0, "psf": 1.77, "available": "8/15/2026"}, {"property": "Alvista Galleria", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B2\"", "unit": "=\"1445\"", "sf": 1080.0, "rent": 1979.0, "psf": 1.83, "available": "8/31/2026"}, {"property": "Alvista Galleria", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B3\"", "unit": "=\"2340\"", "sf": 1175.0, "rent": 2219.0, "psf": 1.89, "available": "9/5/2026"}, {"property": "Alvista Galleria", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B3\"", "unit": "=\"2406\"", "sf": 1175.0, "rent": 2244.0, "psf": 1.91, "available": "9/3/2026"}, {"property": "Alvista Galleria", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B3\"", "unit": "=\"2410\"", "sf": 1175.0, "rent": 2244.0, "psf": 1.91, "available": "8/9/2026"}, {"property": "Alvista Galleria", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B3\"", "unit": "=\"2144\"", "sf": 1175.0, "rent": 2304.0, "psf": 1.96, "available": "Now"}, {"property": "Alvista Galleria", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B6\"", "unit": "=\"3217\"", "sf": 1280.0, "rent": 1988.0, "psf": 1.55, "available": "Now"}, {"property": "Alvista Galleria", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B6\"", "unit": "=\"1405\"", "sf": 1280.0, "rent": 2050.0, "psf": 1.6, "available": "Now"}, {"property": "Alvista Galleria", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B6\"", "unit": "=\"1441\"", "sf": 1280.0, "rent": 2050.0, "psf": 1.6, "available": "Now"}, {"property": "Alvista Galleria", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B6\"", "unit": "=\"3209\"", "sf": 1280.0, "rent": 2074.0, "psf": 1.62, "available": "8/6/2026"}, {"property": "Alvista Galleria", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B6\"", "unit": "=\"3117\"", "sf": 1280.0, "rent": 2083.0, "psf": 1.63, "available": "Now"}, {"property": "Alvista Galleria", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B6\"", "unit": "=\"2425\"", "sf": 1280.0, "rent": 2114.0, "psf": 1.65, "available": "Now"}, {"property": "Alvista Galleria", "isSubject": false, "unitType": "2 Bed", "floorplan": "=\"B6\"", "unit": "=\"3417\"", "sf": 1280.0, "rent": 2114.0, "psf": 1.65, "available": "9/4/2026"}];
+
+const COMP_SET = [
+  {name:"Magnolia Galleria", role:"Subject", info:"171 units · 2023 · Stabilized 94%", cls:"subject"},
+  {name:"Alexan at the Galleria", role:"On original list", info:"239 units · 2025 · Lease-up 78%", cls:""},
+  {name:"Hazel by the Galleria", role:"On original list", info:"398 units · 2023 · Stabilized 93%", cls:""},
+  {name:"Muse At Midtown", role:"On original list", info:"289 units · 2020 · Stabilized 95%", cls:""},
+  {name:"Cornell Midtown", role:"On original list", info:"344 units · 2019 · Stabilized 94%", cls:""},
+  {name:"Windsor By The Galleria", role:"On original list", info:"321 units · 2015/2017 · Stabilized 96%", cls:""},
+  {name:"Alvista Galleria", role:"On original list", info:"409 units · 2019 · Stabilized 96%", cls:""},
+  {name:"Merrick on Midway Apartments", role:"Recommended add", info:"365 units · 2026 · Lease-up", cls:"added"},
+  {name:"Midway Urban Village", role:"Recommended add", info:"263 units · 2020 · Stabilized", cls:"added"},
+  {name:"Midway Row House", role:"Recommended add", info:"158 units · 2023 · Stabilized", cls:"added"},
+  {name:"Jewel On Landmark", role:"Recommended add", info:"368 units · 2018 · Stabilized", cls:"added"},
+];
+
+function cleanCell(v){
+  if(typeof v !== "string") return v;
+  const m = v.match(/^="(.*)"$/);
+  return m ? m[1] : v;
+}
+UNITS.forEach(u=>{ u.floorplan = cleanCell(u.floorplan); u.unit = cleanCell(u.unit); });
+
+const compGrid = document.getElementById("compGrid");
+COMP_SET.forEach(c=>{
+  const div = document.createElement("div");
+  div.className = "comp-card " + c.cls;
+  div.innerHTML = `<div class="name">${c.name}${c.cls==="added" ? '<span class="tag">Added</span>' : ''}</div><div class="sub">${c.info}</div>`;
+  compGrid.appendChild(div);
+});
+
+const UNIT_TYPES = ["Studio","1 Bed","2 Bed","3 Bed"].filter(t => UNITS.some(u=>u.unitType===t));
+
+const compNames = [...new Set(UNITS.filter(u=>!u.isSubject).map(u=>u.property))];
+const SHAPES = ["circle","square","triangle","diamond","tri-down","cross","x","pentagon","star","hex"];
+const shapeFor = {};
+compNames.forEach((name,i)=> shapeFor[name] = SHAPES[i % SHAPES.length]);
+
+function shapePath(shape, r){
+  switch(shape){
+    case "circle": return null;
+    case "square": return `M${-r},${-r} h${2*r} v${2*r} h${-2*r} Z`;
+    case "triangle": return `M0,${-r*1.15} L${r*1.05},${r*0.85} L${-r*1.05},${r*0.85} Z`;
+    case "tri-down": return `M0,${r*1.15} L${r*1.05},${-r*0.85} L${-r*1.05},${-r*0.85} Z`;
+    case "diamond": return `M0,${-r*1.25} L${r*1.25},0 L0,${r*1.25} L${-r*1.25},0 Z`;
+    case "cross": {
+      const a = r*0.32, b = r*1.05;
+      return `M${-a},${-b} h${2*a} v${b-a} h${b-a} v${2*a} h${-(b-a)} v${b-a} h${-2*a} v${-(b-a)} h${-(b-a)} v${-2*a} h${b-a} Z`;
+    }
+    case "x": {
+      const a = r*0.3;
+      const p = r*1.0;
+      return `M${-p},${-p+a} L${-p+a},${-p} L0,${-a} L${p-a},${-p} L${p},${-p+a} L${a},0 L${p},${p-a} L${p-a},${p} L0,${a} L${-p+a},${p} L${-p},${p-a} L${-a},0 Z`;
+    }
+    case "pentagon": {
+      let pts = [];
+      for(let i=0;i<5;i++){
+        const ang = -Math.PI/2 + i*(2*Math.PI/5);
+        pts.push(`${(r*1.15*Math.cos(ang)).toFixed(2)},${(r*1.15*Math.sin(ang)).toFixed(2)}`);
+      }
+      return "M" + pts.join(" L") + " Z";
+    }
+    case "star": {
+      let pts = [];
+      for(let i=0;i<10;i++){
+        const ang = -Math.PI/2 + i*(Math.PI/5);
+        const rad = i%2===0 ? r*1.3 : r*0.55;
+        pts.push(`${(rad*Math.cos(ang)).toFixed(2)},${(rad*Math.sin(ang)).toFixed(2)}`);
+      }
+      return "M" + pts.join(" L") + " Z";
+    }
+    case "hex": {
+      let pts = [];
+      for(let i=0;i<6;i++){
+        const ang = i*(Math.PI/3);
+        pts.push(`${(r*1.1*Math.cos(ang)).toFixed(2)},${(r*1.1*Math.sin(ang)).toFixed(2)}`);
+      }
+      return "M" + pts.join(" L") + " Z";
+    }
+    default: return null;
+  }
+}
+
+let activeTab = UNIT_TYPES[0];
+let isolated = null;
+
+const tabsEl = document.getElementById("tabs");
+function renderTabs(){
+  tabsEl.innerHTML = "";
+  UNIT_TYPES.forEach(t=>{
+    const n = UNITS.filter(u=>u.unitType===t).length;
+    const btn = document.createElement("button");
+    btn.className = "tab-btn" + (t===activeTab ? " active" : "");
+    btn.innerHTML = `${t}<span class="n">${n}</span>`;
+    btn.addEventListener("click", ()=>{ activeTab = t; isolated=null; renderAll(); });
+    tabsEl.appendChild(btn);
+  });
+}
+
+function niceStep(range){
+  const raw = range/6;
+  const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const norm = raw/mag;
+  let step;
+  if(norm < 1.5) step = 1*mag;
+  else if(norm < 3) step = 2*mag;
+  else if(norm < 7) step = 5*mag;
+  else step = 10*mag;
+  return step;
+}
+
+const svg = document.getElementById("plot");
+const tooltip = document.getElementById("tooltip");
+const legendList = document.getElementById("legendList");
+const statsTable = document.getElementById("statsTable");
+const NS = "http://www.w3.org/2000/svg";
+
+function el(tag, attrs){
+  const e = document.createElementNS(NS, tag);
+  for(const k in attrs) e.setAttribute(k, attrs[k]);
+  return e;
+}
+
+function renderChart(){
+  svg.innerHTML = "";
+  const data = UNITS.filter(u=>u.unitType===activeTab);
+  const M = {l:58, r:16, t:16, b:44};
+  const W = 700, H = 440;
+  const plotW = W - M.l - M.r, plotH = H - M.t - M.b;
+
+  const sfMin = Math.min(...data.map(d=>d.sf)), sfMax = Math.max(...data.map(d=>d.sf));
+  const rentMin = Math.min(...data.map(d=>d.rent)), rentMax = Math.max(...data.map(d=>d.rent));
+  const sfPad = (sfMax-sfMin)*0.12 || 40;
+  const rentPad = (rentMax-rentMin)*0.12 || 100;
+  const x0 = Math.max(0, sfMin-sfPad), x1 = sfMax+sfPad;
+  const y0 = Math.max(0, rentMin-rentPad), y1 = rentMax+rentPad;
+
+  const xs = v => M.l + (v-x0)/(x1-x0)*plotW;
+  const ys = v => M.t + plotH - (v-y0)/(y1-y0)*plotH;
+
+  const xStep = niceStep(x1-x0), yStep = niceStep(y1-y0);
+  const xTicks = []; for(let v=Math.ceil(x0/xStep)*xStep; v<=x1; v+=xStep) xTicks.push(v);
+  const yTicks = []; for(let v=Math.ceil(y0/yStep)*yStep; v<=y1; v+=yStep) yTicks.push(v);
+
+  yTicks.forEach(v=>{
+    svg.appendChild(el("line",{class:"gridline", x1:M.l, x2:W-M.r, y1:ys(v), y2:ys(v)}));
+    const t = el("text",{class:"tick-label", x:M.l-8, y:ys(v)+3, "text-anchor":"end"});
+    t.textContent = "$" + v.toLocaleString();
+    svg.appendChild(t);
+  });
+  xTicks.forEach(v=>{
+    const t = el("text",{class:"tick-label", x:xs(v), y:H-M.b+18, "text-anchor":"middle"});
+    t.textContent = v.toLocaleString();
+    svg.appendChild(t);
+  });
+  svg.appendChild(el("line",{class:"axis", x1:M.l, x2:W-M.r, y1:H-M.b, y2:H-M.b, stroke:"var(--line)"}));
+  svg.appendChild(el("line",{class:"axis", x1:M.l, x2:M.l, y1:M.t, y2:H-M.b, stroke:"var(--line)"}));
+
+  const xLabel = el("text",{class:"axis-label", x:M.l+plotW/2, y:H-4, "text-anchor":"middle"});
+  xLabel.textContent = "Unit Size (SF)";
+  svg.appendChild(xLabel);
+  const yLabel = el("text",{class:"axis-label", x:14, y:M.t+plotH/2, "text-anchor":"middle", transform:`rotate(-90 14 ${M.t+plotH/2})`});
+  yLabel.textContent = "Asking Rent ($)";
+  svg.appendChild(yLabel);
+
+  data.forEach(d=>{
+    const cx = xs(d.sf), cy = ys(d.rent);
+    const dimmed = isolated && isolated !== d.property;
+    let node;
+    if(d.isSubject){
+      node = el("circle",{class:"pt subject-pt"+(dimmed?" dim":""), cx, cy, r:5.5});
+    } else {
+      const shape = shapeFor[d.property];
+      const path = shapePath(shape, 5.5);
+      if(path === null){
+        node = el("circle",{class:"pt comp-pt"+(dimmed?" dim":""), cx, cy, r:4.6});
+      } else {
+        node = el("path",{class:"pt comp-pt"+(dimmed?" dim":""), d:path, transform:`translate(${cx},${cy})`});
+      }
+    }
+    node.addEventListener("mousemove", (ev)=> showTip(ev, d));
+    node.addEventListener("mouseleave", hideTip);
+    svg.appendChild(node);
+  });
+}
+
+function showTip(ev, d){
+  const rect = svg.parentElement.getBoundingClientRect();
+  tooltip.style.left = (ev.clientX - rect.left) + "px";
+  tooltip.style.top = (ev.clientY - rect.top) + "px";
+  tooltip.innerHTML = `<div class="t-prop">${d.property}${d.isSubject ? " (Subject)" : ""}</div>
+    <div class="t-row">Floorplan ${d.floorplan} · Unit ${d.unit}</div>
+    <div class="t-row">${d.sf.toLocaleString()} SF &nbsp;·&nbsp; $${d.rent.toLocaleString()} &nbsp;·&nbsp; $${d.psf?.toFixed(2)}/SF</div>
+    <div class="t-row">Available: ${d.available}</div>`;
+  tooltip.classList.add("show");
+}
+function hideTip(){ tooltip.classList.remove("show"); }
+
+function renderLegend(){
+  legendList.innerHTML = "";
+  const subjItem = document.createElement("div");
+  subjItem.className = "legend-item" + (isolated && isolated!=="Magnolia Galleria" ? " faded" : "");
+  const subjCount = UNITS.filter(u=>u.unitType===activeTab && u.isSubject).length;
+  subjItem.innerHTML = `<svg width="16" height="16"><circle cx="8" cy="8" r="5.5" fill="var(--navy)" stroke="var(--navy-deep)"/></svg>
+    <span class="legend-name is-subject">Magnolia Galleria</span><span class="legend-count">${subjCount}</span>`;
+  subjItem.addEventListener("click", ()=>{ isolated = isolated==="Magnolia Galleria" ? null : "Magnolia Galleria"; renderAll(); });
+  legendList.appendChild(subjItem);
+
+  compNames.forEach(name=>{
+    const count = UNITS.filter(u=>u.unitType===activeTab && u.property===name).length;
+    const item = document.createElement("div");
+    item.className = "legend-item" + (isolated && isolated!==name ? " faded" : "");
+    const shape = shapeFor[name];
+    const path = shapePath(shape, 5.5);
+    const inner = path === null
+      ? `<circle cx="8" cy="8" r="4.6" fill="var(--comp)" stroke="#6B7385" stroke-width=".75"/>`
+      : `<path d="${path}" transform="translate(8,8)" fill="var(--comp)" stroke="#6B7385" stroke-width=".75"/>`;
+    item.innerHTML = `<svg width="16" height="16">${inner}</svg><span class="legend-name">${name}</span><span class="legend-count">${count}</span>`;
+    item.addEventListener("click", ()=>{ isolated = isolated===name ? null : name; renderAll(); });
+    legendList.appendChild(item);
+  });
+}
+
+function fmtMoney(v){ return "$" + Math.round(v).toLocaleString(); }
+
+function renderStats(){
+  const rows = [];
+  const subjData = UNITS.filter(u=>u.unitType===activeTab && u.isSubject);
+  if(subjData.length) rows.push({name:"Magnolia Galleria", subject:true, data:subjData});
+  compNames.forEach(name=>{
+    const d = UNITS.filter(u=>u.unitType===activeTab && u.property===name);
+    if(d.length) rows.push({name, subject:false, data:d});
+  });
+  const allComp = UNITS.filter(u=>u.unitType===activeTab && !u.isSubject);
+
+  function stat(data){
+    const sfs = data.map(d=>d.sf), rents = data.map(d=>d.rent), psfs = data.map(d=>d.psf).filter(Boolean);
+    return {
+      n: data.length,
+      sfAvg: sfs.reduce((a,b)=>a+b,0)/sfs.length,
+      rentMin: Math.min(...rents), rentAvg: rents.reduce((a,b)=>a+b,0)/rents.length, rentMax: Math.max(...rents),
+      psfAvg: psfs.reduce((a,b)=>a+b,0)/psfs.length
+    };
+  }
+
+  let html = `<caption>${activeTab} — active listings, this comp set</caption>
+    <thead><tr><th>Property</th><th># Units</th><th>Avg SF</th><th>Rent Min</th><th>Rent Avg</th><th>Rent Max</th><th>Avg $/SF</th></tr></thead><tbody>`;
+  rows.forEach(r=>{
+    const s = stat(r.data);
+    html += `<tr class="${r.subject?'subject-row':''}"><td>${r.name}</td><td>${s.n}</td><td>${Math.round(s.sfAvg).toLocaleString()}</td>
+      <td>${fmtMoney(s.rentMin)}</td><td>${fmtMoney(s.rentAvg)}</td><td>${fmtMoney(s.rentMax)}</td><td>$${s.psfAvg.toFixed(2)}</td></tr>`;
+  });
+  if(allComp.length){
+    const s = stat(allComp);
+    html += `<tr class="avg-row"><td>Comp Set Average</td><td>${s.n}</td><td>${Math.round(s.sfAvg).toLocaleString()}</td>
+      <td>${fmtMoney(s.rentMin)}</td><td>${fmtMoney(s.rentAvg)}</td><td>${fmtMoney(s.rentMax)}</td><td>$${s.psfAvg.toFixed(2)}</td></tr>`;
+  }
+  html += "</tbody>";
+  statsTable.innerHTML = html;
+}
+
+function renderAll(){
+  renderTabs();
+  renderChart();
+  renderLegend();
+  renderStats();
+}
+renderAll();
+</script>
