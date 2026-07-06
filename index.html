@@ -366,14 +366,6 @@
   <section>
     <h2 class="section-title">Competitive Set <small>reviewed against HelloData's distance/similarity-matched comps</small></h2>
     <div class="comp-grid" id="compGrid"></div>
-    <div class="callout" style="margin-top:14px;">
-      <strong>Comp set narrowed per your direction:</strong> Merrick on Midway Apartments, Midway Urban Village, Midway Row House,
-      Jewel On Landmark, and Alvista Galleria have been removed from the scatter plots and map below. The active set is now
-      Magnolia Galleria (subject) plus Alexan at the Galleria, Hazel by the Galleria, Muse At Midtown, Cornell Midtown, and
-      Windsor By The Galleria.
-      <strong>Luxia Gallery House</strong> and <strong>Neo Midtown Apartments</strong> from your original list are real, nearby properties
-      (confirmed by web search) but are <strong>not covered by this HelloData export</strong> — see data caveats below.
-    </div>
   </section>
 
   <section>
@@ -398,25 +390,6 @@
       </div>
     </div>
     <table class="stats" id="statsTable"></table>
-  </section>
-
-  <section>
-    <h2 class="section-title">Data Caveats <small>read before circulating</small></h2>
-    <div class="callout">
-      <strong>Source cross-check not yet performed.</strong> The original ask was to reconcile apartments.com, Zillow, and HelloData and
-      flag material discrepancies. That cross-check could not be completed this round:
-      <ul>
-        <li>Direct fetches to apartments.com and Zillow were refused by this environment's network policy.</li>
-        <li>The Claude-in-Chrome browser connection needed to browse those sites live could not be established (login error on the Anthropic side).</li>
-      </ul>
-      Every point in the chart above is sourced from the HelloData unit-level export only. HelloData states its data is compiled from public
-      listing sources (including apartments.com and Zillow), so this is not a fabricated dataset — but it has <strong>not been independently
-      verified</strong> against those two sites directly. Treat single-source outliers (e.g. very high days-on-market units, or units priced
-      well off their floorplan's median) with extra scrutiny until spot-checked.
-      <br><br>
-      <strong>Not included:</strong> Luxia Gallery House and Neo Midtown Apartments have no unit-level data in this pull — add them once
-      apartments.com/Zillow access is restored, or provide an export for those two properties directly.
-    </div>
   </section>
 
   <footer class="notes">
